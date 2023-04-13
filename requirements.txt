@@ -6,3 +6,12 @@ cryptography
 passlib[bcrypt]
 sqlalchemy
 PyMySQL
+python-multipart
+
+# ml requirements
+opencv-python
+numpy 
+tensorflow 
+scikit-learn 
+imutils 
+xgboost

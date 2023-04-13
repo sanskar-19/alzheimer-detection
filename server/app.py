@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import user
+from .routers import user, ml
 from .database import SessionLocal, db_engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,3 +17,4 @@ app.add_middleware(
 )
 
 app.include_router(user.router, tags=["auth"])
+app.include_router(ml.router, tags=["ml"])

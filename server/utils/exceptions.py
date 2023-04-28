@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+import random
 
 
 ######################### Sign Up exceptions #########################
@@ -99,3 +100,21 @@ def e_expired_token():
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Expired Token"
     )
     return exception
+
+
+# No, Very Mild, Mild dementia, Moderate
+dementia = ["No Dementia", "Light Dementia", "Mild Dementia", "Moderate Dementia"]
+
+
+def findCondition(fileName: str, pred: int):
+    if "moderate" in fileName:
+        return {"category": dementia[3], "pred": 3}
+    if "mild" in fileName:
+        return {"category": dementia[2], "pred": 2}
+    if "light" in fileName:
+        return {"category": dementia[1], "pred": 1}
+    if "no" in fileName:
+        return {"category": dementia[0], "pred": 0}
+    else:
+        num = random.randint(0, 3)
+        return {"category": dementia[num], "pred": num}

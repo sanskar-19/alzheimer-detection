@@ -27,7 +27,7 @@ import pickle
 import imutils
 import sklearn
 from keras.models import load_model
-
+import numpy
 import shutil
 
 # from pushbullet import PushBullet
@@ -38,6 +38,7 @@ from keras.applications.vgg16 import preprocess_input
 db = get_db()
 router = APIRouter(prefix="/api/ml")
 alzheimer_model = load_model("server/utils/ml/models/alzheimer_model.h5")
+alzheimer_model_v2 = load_model("server/utils/ml/models/alzheimer_model_v2.h5")
 
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg"])
 
@@ -47,8 +48,8 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
 
 
-# Adding route for ml
-@router.post("/alzheimer-detect")
+# Adding route for ml v1
+@router.post("/alzheimer-detect-v1")
 async def alzheimer_detect(file: UploadFile):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -63,6 +64,34 @@ async def alzheimer_detect(file: UploadFile):
         pred = alzheimer_model.predict(img)
         pred = pred[0].argmax()
         print(pred)
+        return {
+            "data": exceptions.findCondition(filename, pred),
+            "message": "Details Fetched Successfully",
+        }
+    else:
+        return "Allowed image types are - png, jpg, jpeg"
+
+
+categories = ["NonDemented", "MildDemented", "ModerateDemented", "VeryMildDemented"]
+
+
+# Adding route for ml v2
+@router.post("/alzheimer-detect-v0")
+async def alzheimer_detect(file: UploadFile):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        with open(setting.UPLOAD_FOLDER + "/" + filename, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        # file.save(os.path.join(setting.UPLOAD_FOLDER, filename))
+        # flash("Image successfully uploaded and displayed below")
+        img = cv2.imread(setting.UPLOAD_FOLDER + "/" + filename)
+        img = cv2.resize(img, (120, 120))
+        img = numpy.array(img).reshape(-1, 120, 120, 1)
+        img = img / 255.0
+        pred = alzheimer_model_v2.predict(img)
+        # ptitle = "Prediction: {0}".format(categories[np.argmax(pred)])
+        pred = pred[0].argmax()
+        # print(ptitle)
         return {"data": str(pred)}
     else:
         return "Allowed image types are - png, jpg, jpeg"

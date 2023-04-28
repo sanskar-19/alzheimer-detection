@@ -125,7 +125,7 @@ async def login(user: user_schema.ExistingUser, db: Session = Depends(get_db)):
 
 # Fetch user details from token
 @router.get(
-    "/fetch-user-details",
+    "/fetch-patient-details",
     status_code=status.HTTP_200_OK,
     response_model=user_schema.UserDetails,
 )

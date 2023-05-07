@@ -40,6 +40,7 @@ router = APIRouter(prefix="/api/ml")
 alzheimer_model = load_model("server/utils/ml/models/alzheimer_model.h5")
 alzheimer_model_v2 = load_model("server/utils/ml/models/alzheimer_model_v2.h5")
 
+categories = ["NonDemented", "MildDemented", "ModerateDemented", "VeryMildDemented"]
 ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg"])
 
 
@@ -50,11 +51,13 @@ def allowed_file(filename):
 
 # Adding route for ml v1
 @router.post("/alzheimer-detect-v1")
-async def alzheimer_detect(file: UploadFile):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+async def alzheimer_detect(
+    first_name: str, last_name: str, age: int, contact: str, scan: UploadFile
+):
+    if scan and allowed_file(scan.filename):
+        filename = secure_filename(scan.filename)
         with open(setting.UPLOAD_FOLDER + "/" + filename, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            shutil.copyfileobj(scan.file, buffer)
         # file.save(os.path.join(setting.UPLOAD_FOLDER, filename))
         # flash("Image successfully uploaded and displayed below")
         img = cv2.imread(setting.UPLOAD_FOLDER + "/" + filename)
@@ -65,14 +68,18 @@ async def alzheimer_detect(file: UploadFile):
         pred = pred[0].argmax()
         print(pred)
         return {
-            "data": exceptions.findCondition(filename, pred),
+            "data": {
+                "results": exceptions.findCondition(filename, pred),
+                "patient": {
+                    "Name": first_name + " " + last_name,
+                    "Age": age,
+                    "Contact": contact,
+                },
+            },
             "message": "Details Fetched Successfully",
         }
     else:
         return "Allowed image types are - png, jpg, jpeg"
-
-
-categories = ["NonDemented", "MildDemented", "ModerateDemented", "VeryMildDemented"]
 
 
 # Adding route for ml v2

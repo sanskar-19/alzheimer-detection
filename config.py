@@ -10,8 +10,6 @@ class Setting(BaseSettings):
     PRIVATE_KEY: str
     PUBLIC_KEY: str
     DATABASE_URL: str
-    EMAIL_SERVICE_SENDER_EMAIL: str
-    EMAIL_SERVICE_SENDER_PASS: str
     UPLOAD_FOLDER: str
 
     class Config:

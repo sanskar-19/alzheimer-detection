@@ -48,9 +48,8 @@ ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg"])
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
 
-
-# Adding route for ml v1
-@router.post("/alzheimer-detect-v1")
+# Adding route for ml v2
+@router.post("/alzheimer-detect-v2")
 async def alzheimer_detect(
     first_name: str, last_name: str, age: int, contact: str, scan: UploadFile
 ):
@@ -80,6 +79,40 @@ async def alzheimer_detect(
         }
     else:
         return "Allowed image types are - png, jpg, jpeg"
+
+
+# Adding route for ml v1
+@router.post("/alzheimer-detect-v1")
+async def alzheimer_detect(
+    first_name: str, last_name: str, age: int, contact: str, scan: UploadFile
+):
+    if scan and allowed_file(scan.filename):
+        filename = secure_filename(scan.filename)
+        with open(setting.UPLOAD_FOLDER + "/" + filename, "wb") as buffer:
+            shutil.copyfileobj(scan.file, buffer)
+        # file.save(os.path.join(setting.UPLOAD_FOLDER, filename))
+        # flash("Image successfully uploaded and displayed below")
+        img = cv2.imread(setting.UPLOAD_FOLDER + "/" + filename)
+        img = cv2.resize(img, (176, 176))
+        img = img.reshape(1, 176, 176, 3)
+        img = img / 255.0
+        pred = alzheimer_model.predict(img)
+        pred = pred[0].argmax()
+        print(pred)
+        return {
+            "data": {
+                "results": None,
+                "patient": {
+                    "Name": first_name + " " + last_name,
+                    "Age": age,
+                    "Contact": contact,
+                },
+            },
+            "message": "Details Fetched Successfully",
+        }
+    else:
+        return "Allowed image types are - png, jpg, jpeg"
+    
 
 
 # Adding route for ml v2
